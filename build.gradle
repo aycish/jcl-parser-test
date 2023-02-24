@@ -1,0 +1,50 @@
+plugins {
+    id 'java'
+    id 'antlr'
+}
+
+apply plugin: 'antlr'
+
+group 'org.example'
+version '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
+    implementation group: 'org.antlr', name: 'antlr4', version: '4.9.2'
+    antlr("org.antlr:antlr4:4.9.2")
+
+    testImplementation 'org.junit.jupiter:junit-jupiter-api:5.8.1'
+    testImplementation 'org.junit.jupiter:junit-jupiter-params:5.7.2'
+    testRuntimeOnly 'org.junit.jupiter:junit-jupiter-engine:5.8.1'
+}
+
+ext {
+    grammarpackage='org.example.parser'
+    antlrSource = 'src/main/antlr'
+    generatedSourceDir = '${buildDir}/generated-src/antlr'
+    includeSources = ['TestLexer.g4', 'TestParser.g4']
+}
+
+generateGrammarSource {
+    println 'Delete previous generated lexer/parser files from main and build dir'
+    delete(generatedSourceDir)
+
+    include(includeSources)
+
+    arguments += ['-Xexact-output-dir', '-o', '/src/java/org/example/parser']
+    arguments += ['-long-messages', '-visitor', '-no-listener']
+    arguments += ['-package', 'org.example.parser', '-Dlanguage=Java']
+    println(getArguments())
+}
+
+clean.doLast {
+    file('generated-src').deleteDir()
+}
+
+test {
+    useJUnitPlatform()
+}
