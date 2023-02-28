@@ -1,0 +1,3 @@
+//DD1  DD *
+TEST INSTREAM DATA https://Teszxt
+/*

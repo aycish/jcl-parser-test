@@ -4,9 +4,19 @@ options {
     tokenVocab=TestLexer;
 }
 
+statements :
+    statement
+|   statements statement
+;
+
+statement :
+    ctrlStmt
+|   commentStmt
+;
+
 ctrlStmt:
-    CtrlStmtId Name Operation param?
- ;
+    Identifier Name Operation param?
+;
 
 param:
     ParmKey
@@ -15,15 +25,20 @@ param:
 
 paramValue:
     ParmValue
- |  ParmKeywordOperand ParmEqual ParmValue
- |  bracketStrings
- |  QuotationString
- ;
+|   ParmKey ParmEqual ParmValue
+|   bracketStrings
+|   QuotationString
+|   instreamDatas
+;
 
- bracketStrings:
-     LeftBracket (BracketString | QuotationString)? (Comma (BracketString | QuotationString)?)+ RightBracket
- ;
+bracketStrings:
+    LeftBracket (BracketString | QuotationString)? (Comma (BracketString | QuotationString)?)+ RightBracket
+;
 
 commentStmt:
-    CommentStmtId CommentString
+    Identifier CommentString
+;
+
+instreamDatas :
+    InstreamDatasetEntry InstreamData*?
 ;

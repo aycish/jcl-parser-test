@@ -5,17 +5,18 @@ import lombok.Getter;
 @Getter
 public enum KeywordData {
 
-    JOB("JOB", Type.JOB);
+    JOB("JOB", Type.JOB),
+    DD("DD", Type.DD);
 
-    private String operation;
-    private Type type;
+    private final String operation;
+    private final Type type;
 
-    KeywordData(String OperationName, Type OperationType) {
-        this.operation = OperationName;
-        this.type = OperationType;
+    KeywordData(String operationName, Type operationType) {
+        this.operation = operationName;
+        this.type = operationType;
     }
 
     public static boolean checkNextModeIsParm(String operation) {
-        return JOB.getOperation().equals(operation);
+        return JOB.getOperation().equals(operation) | DD.getOperation().equals(operation);
     }
 }

@@ -9,11 +9,10 @@ options { language = Java; }
 
 @members {
     private int nextMode = TestLexer.DEFAULT_MODE;
-    private final enum metaData;
-    private Map<String,Integer> identifier = new HashMap<String, Integer> {{
-        put(metaData.CTRLID.getId(), NAME_FIELD);
-        put(metaData.COMMENTID.getId(), COMMENT);
-        put(metaData.NULLID.getId(), COMMENT);
+    private Map<String,Integer> identifier = new HashMap<String, Integer>() {{
+        put(MetaData.CTRLID.getId(), NAME_FIELD);
+        put(MetaData.COMMENTID.getId(), COMMENT);
+        put(MetaData.NULLID.getId(), COMMENT);
     }};
 }
 
@@ -24,30 +23,34 @@ NEWLINE :
 ;
 
 fragment
-WS :
-    [ \r\t]
+WS : [ \r\t]
 ;
 
 /* Common Token */
-Comma :
-    ','
+Comma : ','
 ;
 
-EndOfFile :
-    EOF -> skip;
-
-/* MVS Identifier */
-Identifier : [/\\.]+
+/* Default mode lexer rules */
+Identifier : [/\\.*]+
     {
         if (identifier.containsKey(getText())) {
-            this.mode(identifier.get(getText());
+            this.mode(identifier.get(getText()));
         } else {
             setType(InstreamData);
             this.mode(INSTREAM);
         }
     };
 
+InstreamDatasetEntry : ~[/\\]
+    {
+        this.mode(INSTREAM);
+    };
+
+EndOfFile :
+    EOF -> skip;
+
 mode NAME_FIELD;
+
 fragment
 NAME_FIRST_CHAR :
     'a' .. 'z'
@@ -96,7 +99,10 @@ OperationBlank : WS+
 OperationNewLine : NEWLINE -> skip, mode(DEFAULT_MODE);
 
 mode PARAM_KEYWORD_FIELD;
-ParmKey: NAME_FIRST_CHAR NAME_CHAR* ('.' NAME_CHAR+)*;
+ParmKey:
+    NAME_FIRST_CHAR NAME_CHAR* ('.' NAME_CHAR+)*
+|   '*'
+;
 
 ParmComma : ',' WS* NEWLINE?
     {
@@ -110,14 +116,16 @@ ParmKeywordQuotation :
     '\'' -> pushMode(QUOTATION);
 
 ParmEqual :
-    '=' { System.out.println("Check it changed mode"); }-> mode(PARAM_VALUE_FIELD);
+    '=' -> mode(PARAM_VALUE_FIELD);
 
-ParmBlank :
-    WS+ NEWLINE? { System.out.println("Check blank"); } -> skip, mode(DEFAULT_MODE);
+ParmKeyBlank :
+    WS+ -> skip, mode(COMMENT);
+
+ParmKeyNewLine :
+    WS* NEWLINE -> skip, mode(DEFAULT_MODE);
 
 mode PARAM_VALUE_FIELD;
 ParmValue : [a-zA-Z0-9.&$#@/]+ {
-        System.out.println("Does it work?");
         if (getText().equals("KEY")) this.setType(TestLexer.ParmKey);
     };
 
@@ -133,7 +141,10 @@ ParmValueComma : ',' WS+ NEWLINE?
     } -> type(Comma);
 
 ParmValBlank :
-    WS+ NEWLINE? { System.out.println("Check ParmValBlank"); } -> skip, mode(DEFAULT_MODE);
+    WS+ -> skip, mode(COMMENT);
+
+ParmValNewLine :
+    WS* NEWLINE -> skip, mode(DEFAULT_MODE);
 
 ParamValueQuotation :
     '\'' -> pushMode(QUOTATION);
@@ -165,8 +176,14 @@ RightBracket : ')' -> popMode;
 mode CONTINUATION;
 ContinuationId : [/\\*]+
     {
-    /*  Need to class to decide next mode and method to keep continuation mode */
+        /*  Need to class to decide next mode and method to keep continuation mode */
+        if (MetaData.CTRLID.getId().equals(getText()) {
+            skip();
+            popMode();
+        } else if (MetaData.COMMENTID.getId().equals(getText()) {
 
+
+        }
     };
 
 mode REGEX_FIELD;
@@ -207,3 +224,7 @@ CommentNewLine :
 
 CommentString :
     ~[\n]+;
+
+mode INSTREAM;
+
+InstreamData : .+? NEWLINE -> mode(DEFAULT_MODE);
