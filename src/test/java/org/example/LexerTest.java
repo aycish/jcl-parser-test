@@ -61,11 +61,11 @@ class LexerTest {
 
     private static Stream<Arguments> testData() {
         return Stream.of(
-                //Arguments.of("StmtWithoutParm.txt", Arrays.asList(Identifier, Name, Operation)),
-                //Arguments.of("OnePositionParm.txt", Arrays.asList(Identifier, Name, Operation, ParmKey)),
-                //Arguments.of("OneKeywordParm.txt", Arrays.asList(Identifier, Name, Operation, ParmKey, ParmEqual, ParmValue)),
-                //Arguments.of("OneSubKeywordParm.txt", Arrays.asList(Identifier, Name, Operation, ParmKey, ParmEqual, ParmKey, ParmEqual, ParmValue)),
-                //Arguments.of("Comment.txt", Arrays.asList(Identifier, CommentString)),
+                Arguments.of("StmtWithoutParm.txt", Arrays.asList(Identifier, Name, Operation)),
+                Arguments.of("OnePositionParm.txt", Arrays.asList(Identifier, Name, Operation, ParmKey)),
+                Arguments.of("OneKeywordParm.txt", Arrays.asList(Identifier, Name, Operation, ParmKey, ParmEqual, ParmValue)),
+                Arguments.of("OneSubKeywordParm.txt", Arrays.asList(Identifier, Name, Operation, ParmKey, ParmEqual, ParmKey, ParmEqual, ParmValue)),
+                Arguments.of("Comment.txt", Arrays.asList(Identifier, CommentString)),
                 Arguments.of("Instream.txt", Arrays.asList(Identifier, Name, Operation, ParmKey, InstreamDatasetEntry, InstreamData, Identifier))
         );
     }

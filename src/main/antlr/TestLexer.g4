@@ -23,15 +23,18 @@ NEWLINE :
 ;
 
 fragment
-WS : [ \r\t]
+WS :
+    [ \r\t]
 ;
 
 /* Common Token */
-Comma : ','
+Comma :
+    ','
 ;
 
 /* Default mode lexer rules */
-Identifier : [/\\.*]+
+Identifier :
+    [/\\.*]+
     {
         if (identifier.containsKey(getText())) {
             this.mode(identifier.get(getText()));
@@ -41,7 +44,8 @@ Identifier : [/\\.*]+
         }
     };
 
-InstreamDatasetEntry : ~[/\\]
+InstreamDatasetEntry :
+    ~[/\\]
     {
         this.mode(INSTREAM);
     };
@@ -68,10 +72,10 @@ Name :
     NAME_FIRST_CHAR NAME_CHAR* ('.' NAME_CHAR+)?
     {
         this.nextMode = TestLexer.OPERATION_FIELD;
-    }
-;
+    };
 
-NameBlank : WS+
+NameBlank :
+    WS+
     {
         this.mode(this.nextMode);
     } -> skip;
@@ -81,22 +85,24 @@ NameNewLine :
 
 mode OPERATION_FIELD;
 
-Operation : [A-Z]+
+Operation :
+    [A-Z]+
     {
         if (KeywordData.checkNextModeIsParm(getText())) {
             this.nextMode = TestLexer.PARAM_KEYWORD_FIELD;
         } else {
             this.nextMode = TestLexer.REGEX_FIELD;
         }
-    }
-;
+    };
 
-OperationBlank : WS+
+OperationBlank :
+    WS+
     {
         this.mode(this.nextMode);
     } -> skip;
 
-OperationNewLine : NEWLINE -> skip, mode(DEFAULT_MODE);
+OperationNewLine :
+    NEWLINE -> skip, mode(DEFAULT_MODE);
 
 mode PARAM_KEYWORD_FIELD;
 ParmKey:
@@ -104,7 +110,8 @@ ParmKey:
 |   '*'
 ;
 
-ParmComma : ',' WS* NEWLINE?
+ParmComma :
+    ',' WS* NEWLINE?
     {
         if (getText().contains("\n")) {
             this.nextMode = TestLexer.PARAM_KEYWORD_FIELD;
@@ -125,14 +132,17 @@ ParmKeyNewLine :
     WS* NEWLINE -> skip, mode(DEFAULT_MODE);
 
 mode PARAM_VALUE_FIELD;
-ParmValue : [a-zA-Z0-9.&$#@/]+ {
+ParmValue :
+    [a-zA-Z0-9.&$#@/]+
+    {
         if (getText().equals("KEY")) this.setType(TestLexer.ParmKey);
     };
 
 ParmSubParmEqual :
     '=' -> type(ParmEqual);
 
-ParmValueComma : ',' WS+ NEWLINE?
+ParmValueComma :
+    ',' WS+ NEWLINE?
     {
         if (getText().contains("\n")) {
             this.nextMode = TestLexer.PARAM_KEYWORD_FIELD;
@@ -159,22 +169,31 @@ QuotationString :
 ;
 
 QuotationLeftBracket :
-    '(' -> pushMode(BRACKET)
-;
+    '(' -> pushMode(BRACKET);
 
 Quotation :
-    '\'' -> popMode
-;
+    '\'' -> popMode;
 
 mode BRACKET;
-BracketString : (~[()',\r\n])+;
-BracketComma : ',' -> type(Comma);
-QuotationInBracket : '\'' -> pushMode(QUOTATION);
-LeftBracket : '(' -> pushMode(BRACKET);
-RightBracket : ')' -> popMode;
+BracketString :
+    (~[()',\r\n])+
+;
+
+BracketComma :
+    ',' -> type(Comma);
+
+QuotationInBracket :
+    '\'' -> pushMode(QUOTATION);
+
+LeftBracket :
+    '(' -> pushMode(BRACKET);
+
+RightBracket :
+    ')' -> popMode;
 
 mode CONTINUATION;
-ContinuationId : [/\\*]+
+ContinuationId :
+    [/\\*]+
     {
         /*  Need to class to decide next mode and method to keep continuation mode */
         if (MetaData.CTRLID.getId().equals(getText()) {
@@ -223,7 +242,8 @@ CommentNewLine :
     WS* NEWLINE -> skip, mode(DEFAULT_MODE);
 
 CommentString :
-    ~[\n]+;
+    ~[\n]+
+;
 
 mode INSTREAM;
 
