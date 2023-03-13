@@ -62,11 +62,14 @@ class LexerTest {
     private static Stream<Arguments> testData() {
         return Stream.of(
                 Arguments.of("StmtWithoutParm.txt", Arrays.asList(Identifier, Name, Operation)),
-                Arguments.of("OnePositionParm.txt", Arrays.asList(Identifier, Name, Operation, ParmKey)),
-                Arguments.of("OneKeywordParm.txt", Arrays.asList(Identifier, Name, Operation, ParmKey, ParmEqual, ParmValue)),
-                Arguments.of("OneSubKeywordParm.txt", Arrays.asList(Identifier, Name, Operation, ParmKey, ParmEqual, ParmKey, ParmEqual, ParmValue)),
-                Arguments.of("Comment.txt", Arrays.asList(Identifier, CommentString)),
-                Arguments.of("Instream.txt", Arrays.asList(Identifier, Name, Operation, ParmKey, InstreamDatasetEntry, InstreamData, Identifier))
+                Arguments.of("OnePositionParm.txt", Arrays.asList(Identifier, Name, Operation, Param)),
+                Arguments.of("OneKeywordParm.txt", Arrays.asList(Identifier, Name, Operation, KeywordParam, Param)),
+                Arguments.of("OneSubKeywordParm.txt", Arrays.asList(Identifier, Name, Operation, KeywordParam, KeywordParam, Param)),
+                Arguments.of("Comment_01.txt", Arrays.asList(Identifier, CommentString)),
+                Arguments.of("Comment_02.txt", Arrays.asList(Identifier, Name, Operation, KeywordParam, ParamLeftParen, Param, Comma, Param, Comma, Param, ParamRightParen, CommentString)),
+                Arguments.of("Instream.txt", Arrays.asList(Identifier, Name, Operation, Param, InstreamDatasetEntry, InstreamData, Identifier)),
+                Arguments.of("Continuation_01.txt", Arrays.asList(Identifier, Name, Operation, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param)),
+                Arguments.of("Continuation_02.txt", Arrays.asList(Identifier, Name, Operation, Param, Comma, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param))
         );
     }
 }

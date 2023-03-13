@@ -15,24 +15,24 @@ statement :
 ;
 
 ctrlStmt:
-    Identifier Name Operation param?
+    Identifier Name Operation params?
+;
+
+params:
+    param (Comma param)*
 ;
 
 param:
-    ParmKey
-|   ParmKey ParmEqual paramValue
-;
-
-paramValue:
-    ParmValue
-|   ParmKey ParmEqual ParmValue
-|   bracketStrings
-|   QuotationString
+    quotationString
+|   Param
+|   KeywordParam Param
+|   KeywordParam param
+|   KeywordParam ParamLeftParen params ParamRightParen
 |   instreamDatas
 ;
 
-bracketStrings:
-    LeftBracket (BracketString | QuotationString)? (Comma (BracketString | QuotationString)?)+ RightBracket
+quotationString:
+    Quotation QuotationString Quotation
 ;
 
 commentStmt:

@@ -1,0 +1,2 @@
+//DD01 DD *,DISP=NEW,ACCODE=TEST,
+//        AMP=TEST

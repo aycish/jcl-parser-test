@@ -69,27 +69,20 @@ NAME_CHAR :
 ;
 
 Name :
-    NAME_FIRST_CHAR NAME_CHAR* ('.' NAME_CHAR+)?
-    {
-        this.nextMode = TestLexer.OPERATION_FIELD;
-    };
+    NAME_FIRST_CHAR NAME_CHAR* ('.' NAME_CHAR+)?;
 
 NameBlank :
-    WS+
-    {
-        this.mode(this.nextMode);
-    } -> skip;
+    WS+ -> skip, mode(OPERATION_FIELD);
 
 NameNewLine :
     NEWLINE -> skip, mode(DEFAULT_MODE);
 
 mode OPERATION_FIELD;
-
 Operation :
     [A-Z]+
     {
         if (KeywordData.checkNextModeIsParm(getText())) {
-            this.nextMode = TestLexer.PARAM_KEYWORD_FIELD;
+            this.nextMode = TestLexer.PARAM;
         } else {
             this.nextMode = TestLexer.REGEX_FIELD;
         }
@@ -104,106 +97,86 @@ OperationBlank :
 OperationNewLine :
     NEWLINE -> skip, mode(DEFAULT_MODE);
 
-mode PARAM_KEYWORD_FIELD;
-ParmKey:
-    NAME_FIRST_CHAR NAME_CHAR* ('.' NAME_CHAR+)*
-|   '*'
-;
-
-ParmComma :
-    ',' WS* NEWLINE?
+mode PARAM;
+KeywordParam :
+    NAME_FIRST_CHAR NAME_CHAR* ('.' NAME_FIRST_CHAR NAME_CHAR*)? '='
     {
-        if (getText().contains("\n")) {
-            this.nextMode = TestLexer.PARAM_KEYWORD_FIELD;
-            this.mode(TestLexer.CONTINUATION);
-        }
-    } -> type(Comma);
-
-ParmKeywordQuotation :
-    '\'' -> pushMode(QUOTATION);
-
-ParmEqual :
-    '=' -> mode(PARAM_VALUE_FIELD);
-
-ParmKeyBlank :
-    WS+ -> skip, mode(COMMENT);
-
-ParmKeyNewLine :
-    WS* NEWLINE -> skip, mode(DEFAULT_MODE);
-
-mode PARAM_VALUE_FIELD;
-ParmValue :
-    [a-zA-Z0-9.&$#@/]+
-    {
-        if (getText().equals("KEY")) this.setType(TestLexer.ParmKey);
+        System.out.println("Check Keyword Param : " + getText());
+        this.nextMode = TestLexer.DEFAULT_MODE;
     };
 
-ParmSubParmEqual :
-    '=' -> type(ParmEqual);
-
-ParmValueComma :
-    ',' WS+ NEWLINE?
+Param:
+    ~[ '=(),\r\n]+
     {
+        System.out.println("Check Positional or Parameter Value : " + getText());
+    }
+;
+
+ParamComma :
+    ',' NEWLINE?
+    {
+        this.nextMode = TestLexer.PARAM;
         if (getText().contains("\n")) {
-            this.nextMode = TestLexer.PARAM_KEYWORD_FIELD;
-            this.mode(TestLexer.CONTINUATION);
+            System.out.println("I Think, It will enter Contiuation lexical mode");
+            pushMode(TestLexer.CONTINUATION);
+        } else {
+            System.out.println("Just Keep Param Mode");
         }
     } -> type(Comma);
 
-ParmValBlank :
-    WS+ -> skip, mode(COMMENT);
+ParamBlank :
+    WS+
+    {
+        /* 이전에 Comma가 나왔는지를 체크하여 Comment 이후의 모드를 결정한다.
+        *  Comma가 나왔었다면, nextMode는 TestLexer.PARAM의 값을 가지고 있다.
+        */
+        if (nextMode == TestLexer.PARAM) {
+            this.nextMode = TestLexer.CONTINUATION;
+        } else {
+            this.nextMode = TestLexer.DEFAULT_MODE;
+        }
 
-ParmValNewLine :
-    WS* NEWLINE -> skip, mode(DEFAULT_MODE);
+        pushMode(TestLexer.COMMENT);
+    }-> skip;
 
-ParamValueQuotation :
-    '\'' -> pushMode(QUOTATION);
+ParamNewline :
+    NEWLINE -> skip, mode(DEFAULT_MODE);
 
-ParamValueBracket :
-    '(' -> pushMode(BRACKET);
+ParamQuotation :
+    '\'' -> type(Quotation), pushMode(QUOTATION);
 
-/* TODO : quotation String, Parented String, SubParameter Parsing Rule 추가 필요 */
-mode QUOTATION;
-QuotationString :
-    (~[()'\r\n])+
+ParamLeftParen :
+    '('
+ ;
+
+ParamRightParen :
+    ')'
 ;
 
-QuotationLeftBracket :
-    '(' -> pushMode(BRACKET);
+mode QUOTATION;
+QuotationString :
+    (~['\r\n])+
+;
+
+QuotationNewLine :
+    NEWLINE
+    {
+        this.nextMode = TestLexer.QUOTATION;
+    } -> skip, pushMode(CONTINUATION);
 
 Quotation :
     '\'' -> popMode;
 
-mode BRACKET;
-BracketString :
-    (~[()',\r\n])+
-;
-
-BracketComma :
-    ',' -> type(Comma);
-
-QuotationInBracket :
-    '\'' -> pushMode(QUOTATION);
-
-LeftBracket :
-    '(' -> pushMode(BRACKET);
-
-RightBracket :
-    ')' -> popMode;
-
 mode CONTINUATION;
 ContinuationId :
-    [/\\*]+
+    [/\\*]+ WS*
     {
-        /*  Need to class to decide next mode and method to keep continuation mode */
-        if (MetaData.CTRLID.getId().equals(getText()) {
-            skip();
+        String trimmed = getText().trim();
+        System.out.println(getText().trim().equals(MetaData.CTRLID.getId()));
+        if (getText().trim().equals(MetaData.CTRLID.getId())) {
             popMode();
-        } else if (MetaData.COMMENTID.getId().equals(getText()) {
-
-
         }
-    };
+    } -> skip;
 
 mode REGEX_FIELD;
 RegExpKeyword :
@@ -235,11 +208,14 @@ RegExpThen :
 ;
 
 RegNewLine :
-    WS+ NEWLINE -> skip, mode(CONTINUATION);
+    WS+ NEWLINE -> skip, pushMode(CONTINUATION);
 
 mode COMMENT;
 CommentNewLine :
-    WS* NEWLINE -> skip, mode(DEFAULT_MODE);
+    WS* NEWLINE {
+        mode(this.nextMode);
+    }-> skip
+;
 
 CommentString :
     ~[\n]+
