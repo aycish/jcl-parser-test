@@ -69,7 +69,10 @@ class LexerTest {
                 Arguments.of("Comment_02.txt", Arrays.asList(Identifier, Name, Operation, KeywordParam, ParamLeftParen, Param, Comma, Param, Comma, Param, ParamRightParen, CommentString)),
                 Arguments.of("Instream.txt", Arrays.asList(Identifier, Name, Operation, Param, InstreamDatasetEntry, InstreamData, Identifier)),
                 Arguments.of("Continuation_01.txt", Arrays.asList(Identifier, Name, Operation, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param)),
-                Arguments.of("Continuation_02.txt", Arrays.asList(Identifier, Name, Operation, Param, Comma, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param))
+                Arguments.of("Continuation_02.txt", Arrays.asList(Identifier, Name, Operation, Param, Comma, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param)),
+                Arguments.of("IF-THEN-ELSE_01.txt", Arrays.asList(Identifier, Name, Operation, RelExpLeftParen, RelExpKeyword, RelExpCompOp, RelExpKeyword, RelExpRightParen, RelExpThen)),
+                Arguments.of("IF-THEN-ELSE_02.txt", Arrays.asList(Identifier, Name, Operation, RelExpLeftParen, RelExpKeyword, RelExpCompOp, RelExpKeyword, RelExpLogicalOp, RelExpKeyword, RelExpCompOp, RelExpKeyword, RelExpRightParen, RelExpThen)),
+                Arguments.of("IF-THEN-ELSE_03.txt", Arrays.asList(Identifier, Name, Operation, RelExpLeftParen, RelExpKeyword, RelExpCompOp, RelExpKeyword, RelExpLogicalOp, RelExpKeyword, RelExpCompOp, RelExpKeyword, RelExpRightParen, RelExpThen))
         );
     }
 }

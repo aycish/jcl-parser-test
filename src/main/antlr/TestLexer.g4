@@ -84,7 +84,7 @@ Operation :
         if (KeywordData.checkNextModeIsParm(getText())) {
             this.nextMode = TestLexer.PARAM;
         } else {
-            this.nextMode = TestLexer.REGEX_FIELD;
+            this.nextMode = TestLexer.RELEXP_FIELD;
         }
     };
 
@@ -101,15 +101,11 @@ mode PARAM;
 KeywordParam :
     NAME_FIRST_CHAR NAME_CHAR* ('.' NAME_FIRST_CHAR NAME_CHAR*)? '='
     {
-        System.out.println("Check Keyword Param : " + getText());
         this.nextMode = TestLexer.DEFAULT_MODE;
     };
 
 Param:
     ~[ '=(),\r\n]+
-    {
-        System.out.println("Check Positional or Parameter Value : " + getText());
-    }
 ;
 
 ParamComma :
@@ -117,10 +113,7 @@ ParamComma :
     {
         this.nextMode = TestLexer.PARAM;
         if (getText().contains("\n")) {
-            System.out.println("I Think, It will enter Contiuation lexical mode");
             pushMode(TestLexer.CONTINUATION);
-        } else {
-            System.out.println("Just Keep Param Mode");
         }
     } -> type(Comma);
 
@@ -171,28 +164,46 @@ mode CONTINUATION;
 ContinuationId :
     [/\\*]+ WS*
     {
-        String trimmed = getText().trim();
-        System.out.println(getText().trim().equals(MetaData.CTRLID.getId()));
         if (getText().trim().equals(MetaData.CTRLID.getId())) {
             popMode();
         }
     } -> skip;
 
-mode REGEX_FIELD;
-RegExpKeyword :
-    [a-zA-Z0-9.]+
+mode RELEXP_FIELD;
+RelExpThen :
+    'THEN' WS* {
+        this.nextMode = TestLexer.DEFAULT_MODE;
+        if (getText().contains(" ")) {
+            mode(COMMENT);
+        }
+    }
 ;
 
-RegExpLogicalOp:
+RelExpKeyword :
+    [a-zA-Z0-9.]+
+    {
+        this.nextMode = TestLexer.RELEXP_FIELD;
+    }
+;
+
+RelExpLeftParen :
+    '('
+ ;
+
+RelExpRightParen :
+    ')'
+;
+
+RelExpLogicalOp:
     'AND' | '&'
 |   'OR'  | '|'
 ;
 
-RegExpNotOp:
+RelExpNotOp:
     'NOT' | '~'
 ;
 
-RegExpCompOp :
+RelExpCompOp :
   'GT' | '>'
 | 'LT' | '<'
 | 'NG' | '~>' | '^>'
@@ -203,18 +214,27 @@ RegExpCompOp :
 | 'LE' | '<='
 ;
 
-RegExpThen :
-    'THEN' WS+ NEWLINE -> mode(DEFAULT_MODE)
-;
+RelExpBlank :
+    WS+ -> skip;
 
-RegNewLine :
-    WS+ NEWLINE -> skip, pushMode(CONTINUATION);
+RelNewLine :
+    NEWLINE
+    {
+        /* 이전에 THEN이 나온 경우 */
+        if (this.nextMode == TestLexer.DEFAULT_MODE) {
+            mode(DEFAULT_MODE);
+        /* 이전에 THEN이 나오지 않은 경우 */
+        } else {
+            this.nextMode = TestLexer.RELEXP_FIELD;
+            pushMode(CONTINUATION);
+        }
+    } -> skip;
 
 mode COMMENT;
 CommentNewLine :
     WS* NEWLINE {
         mode(this.nextMode);
-    }-> skip
+    } -> skip
 ;
 
 CommentString :

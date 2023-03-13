@@ -11,11 +11,25 @@ statements :
 
 statement :
     ctrlStmt
+|   relStmt
 |   commentStmt
 ;
 
 ctrlStmt:
     Identifier Name Operation params?
+;
+
+relStmt:
+    Identifier Name Operation relExps RelExpThen
+;
+
+relExps:
+    RelExpNotOp? RelExpLeftParen? relExp (RelExpLogicalOp relExp)* RelExpRightParen?
+;
+
+relExp:
+    RelExpKeyword RelExpCompOp RelExpKeyword
+|   RelExpNotOp RelExpLeftParen RelExpKeyword RelExpCompOp RelExpKeyword RelExpRightParen
 ;
 
 params:
