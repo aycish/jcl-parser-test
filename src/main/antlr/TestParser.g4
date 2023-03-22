@@ -13,6 +13,7 @@ statement :
     ctrlStmt
 |   relStmt
 |   commentStmt
+|   nullStmt
 ;
 
 ctrlStmt:
@@ -55,4 +56,8 @@ commentStmt:
 
 instreamDatas :
     InstreamDatasetEntry InstreamData*?
+;
+
+nullStmt:
+    Identifier
 ;

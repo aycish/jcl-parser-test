@@ -19,23 +19,29 @@ import java.util.stream.Collectors;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 public class JCLParserTestUtility {
-    public static List<Integer> getTokenTypeList(final String fileName) throws FileNotFoundException {
+    public static List<Integer> getTokenTypeList(final String fileName) {
         TestLexer testLexer = getLexerInstance(fileName);
         CommonTokenStream tokenStream = new CommonTokenStream(testLexer);
         tokenStream.fill();
         return tokenStream.getTokens().stream().map(Token::getType).collect(Collectors.toList());
     }
 
-    public static TestParser createParserInstance(final String fileName) throws FileNotFoundException {
+    public static TestParser createParserInstance(final String fileName) {
         TestLexer testLexer = getLexerInstance(fileName);
         CommonTokenStream tokenStream = new CommonTokenStream(testLexer);
         return new TestParser(tokenStream);
     }
 
-    private static TestLexer getLexerInstance(String fileName) throws FileNotFoundException {
+    private static TestLexer getLexerInstance(String fileName) {
         Path filePath = Paths.get("src", "test", "resources", fileName);
 
-        InputStream inputStream = new FileInputStream(filePath.toString());
+        InputStream inputStream = null;
+
+        try {
+            inputStream = new FileInputStream(filePath.toString());
+        } catch (FileNotFoundException e) {
+            System.err.println("Can't find the file : " + fileName);
+        }
         assertNotNull(inputStream);
 
         CharStream charStream = null;

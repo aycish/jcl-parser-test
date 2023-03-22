@@ -5,7 +5,6 @@ import org.junit.jupiter.params.provider.Arguments;
 import org.junit.jupiter.params.provider.MethodSource;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.stream.Stream;
@@ -19,12 +18,7 @@ class LexerTest {
     @ParameterizedTest(name = "{0} Test")
     @MethodSource("testData")
     void ControlStatementLexerTest(final String fileName, List<Integer> expected) {
-        List<Integer> actual = null;
-        try {
-            actual = getTokenTypeList(fileName);
-        } catch (FileNotFoundException e) {
-            throw new RuntimeException(e);
-        }
+        List<Integer> actual = getTokenTypeList(fileName);
         validate(expected, actual);
     }
 
@@ -38,18 +32,18 @@ class LexerTest {
 
     private static Stream<Arguments> testData() {
         return Stream.of(
-                Arguments.of("lexer" + File.separator + "lexer/StmtWithoutParm.txt", Arrays.asList(Identifier, Name, Operation)),
-                Arguments.of("lexer" + File.separator + "lexer/OnePositionParm.txt", Arrays.asList(Identifier, Name, Operation, Param)),
-                Arguments.of("lexer" + File.separator + "lexer/OneKeywordParm.txt", Arrays.asList(Identifier, Name, Operation, KeywordParam, Param)),
-                Arguments.of("lexer" + File.separator + "lexer/OneSubKeywordParm.txt", Arrays.asList(Identifier, Name, Operation, KeywordParam, KeywordParam, Param)),
-                Arguments.of("lexer" + File.separator + "lexer/Comment_01.txt", Arrays.asList(Identifier, CommentString)),
-                Arguments.of("lexer" + File.separator + "lexer/Comment_02.txt", Arrays.asList(Identifier, Name, Operation, KeywordParam, ParamLeftParen, Param, Comma, Param, Comma, Param, ParamRightParen, CommentString)),
-                Arguments.of("lexer" + File.separator + "lexer/Instream.txt", Arrays.asList(Identifier, Name, Operation, Param, InstreamDatasetEntry, InstreamData, Identifier)),
-                Arguments.of("lexer" + File.separator + "lexer/Continuation_01.txt", Arrays.asList(Identifier, Name, Operation, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param)),
-                Arguments.of("lexer" + File.separator + "lexer/Continuation_02.txt", Arrays.asList(Identifier, Name, Operation, Param, Comma, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param)),
-                Arguments.of("lexer" + File.separator + "lexer/IF-THEN-ELSE_01.txt", Arrays.asList(Identifier, Name, Operation, RelExpLeftParen, RelExpKeyword, RelExpCompOp, RelExpKeyword, RelExpRightParen, RelExpThen)),
-                Arguments.of("lexer" + File.separator + "lexer/IF-THEN-ELSE_02.txt", Arrays.asList(Identifier, Name, Operation, RelExpLeftParen, RelExpKeyword, RelExpCompOp, RelExpKeyword, RelExpLogicalOp, RelExpKeyword, RelExpCompOp, RelExpKeyword, RelExpRightParen, RelExpThen)),
-                Arguments.of("lexer" + File.separator + "lexer/IF-THEN-ELSE_03.txt", Arrays.asList(Identifier, Name, Operation, RelExpLeftParen, RelExpKeyword, RelExpCompOp, RelExpKeyword, RelExpLogicalOp, RelExpKeyword, RelExpCompOp, RelExpKeyword, RelExpRightParen, RelExpThen))
+                Arguments.of("parser" + File.separator + "StmtWithoutParm.txt", Arrays.asList(Identifier, Name, Operation)),
+                Arguments.of("parser" + File.separator + "OnePositionParm.txt", Arrays.asList(Identifier, Name, Operation, Param)),
+                Arguments.of("parser" + File.separator + "OneKeywordParm.txt", Arrays.asList(Identifier, Name, Operation, KeywordParam, Param)),
+                Arguments.of("parser" + File.separator + "OneSubKeywordParm.txt", Arrays.asList(Identifier, Name, Operation, KeywordParam, KeywordParam, Param)),
+                Arguments.of("parser" + File.separator + "Comment_01.txt", Arrays.asList(Identifier, CommentString)),
+                Arguments.of("parser" + File.separator + "Comment_02.txt", Arrays.asList(Identifier, Name, Operation, KeywordParam, ParamLeftParen, Param, Comma, Param, Comma, Param, ParamRightParen, CommentString)),
+                Arguments.of("parser" + File.separator + "Instream.txt", Arrays.asList(Identifier, Name, Operation, Param, InstreamDatasetEntry, InstreamData, Identifier)),
+                Arguments.of("parser" + File.separator + "Continuation_01.txt", Arrays.asList(Identifier, Name, Operation, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param)),
+                Arguments.of("parser" + File.separator + "Continuation_02.txt", Arrays.asList(Identifier, Name, Operation, Param, Comma, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param, Comma, KeywordParam, Param)),
+                Arguments.of("parser" + File.separator + "IF-THEN-ELSE_01.txt", Arrays.asList(Identifier, Name, Operation, RelExpLeftParen, RelExpKeyword, RelExpCompOp, RelExpKeyword, RelExpRightParen, RelExpThen)),
+                Arguments.of("parser" + File.separator + "IF-THEN-ELSE_02.txt", Arrays.asList(Identifier, Name, Operation, RelExpLeftParen, RelExpKeyword, RelExpCompOp, RelExpKeyword, RelExpLogicalOp, RelExpKeyword, RelExpCompOp, RelExpKeyword, RelExpRightParen, RelExpThen)),
+                Arguments.of("parser" + File.separator + "IF-THEN-ELSE_03.txt", Arrays.asList(Identifier, Name, Operation, RelExpLeftParen, RelExpKeyword, RelExpCompOp, RelExpKeyword, RelExpLogicalOp, RelExpKeyword, RelExpCompOp, RelExpKeyword, RelExpRightParen, RelExpThen))
         );
     }
 }
