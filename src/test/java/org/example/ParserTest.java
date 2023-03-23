@@ -1,14 +1,16 @@
 package org.example;
 
+import org.antlr.v4.runtime.ParserRuleContext;
 import org.antlr.v4.runtime.tree.ParseTree;
 import org.antlr.v4.runtime.tree.TerminalNode;
 import org.example.parser.TestLexer;
 import org.example.parser.TestParser;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.params.ParameterizedTest;
+import org.junit.jupiter.params.provider.ValueSource;
 
 import java.io.File;
-import java.util.List;
 
 import static org.example.JCLParserTestUtility.createParserInstance;
 import static org.example.parser.TestParser.*;
@@ -26,9 +28,9 @@ class ParserTest {
         CtrlStmtContext ctrlStmtContext = parser.ctrlStmt();
         assertEquals(3, ctrlStmtContext.children.size());
 
-        assertTrue(isSameToken(TestLexer.Identifier, ctrlStmtContext.children.get(0)));
-        assertTrue(isSameToken(TestLexer.Name, ctrlStmtContext.children.get(1)));
-        assertTrue(isSameToken(TestLexer.Operation, ctrlStmtContext.children.get(2)));
+        assertTrue(checkToken(TestLexer.Identifier, ctrlStmtContext.children.get(0)));
+        assertTrue(checkToken(TestLexer.Name, ctrlStmtContext.children.get(1)));
+        assertTrue(checkToken(TestLexer.Operation, ctrlStmtContext.children.get(2)));
         assertNull(ctrlStmtContext.params());
     }
 
@@ -43,42 +45,57 @@ class ParserTest {
         assertNotNull(ctrlStmtContext);
         assertEquals(4, ctrlStmtContext.children.size());
 
-        assertNotNull(ctrlStmtContext.Identifier());
-        assertNotNull(ctrlStmtContext.Name());
-        assertNotNull(ctrlStmtContext.Operation());
-        assertNotNull(ctrlStmtContext.params());
+        /* 제어문 Parse Tree 구성 노드 확인 */
+        assertTrue(checkToken(TestLexer.Identifier, ctrlStmtContext.getChild(0)));
+        assertTrue(checkToken(TestLexer.Name, ctrlStmtContext.getChild(1)));
+        assertTrue(checkToken(TestLexer.Operation, ctrlStmtContext.getChild(2)));
+        assertTrue(checkRule(TestParser.ParamsContext.class, ctrlStmtContext.getChild(3)));
 
-        ParamsContext params = ctrlStmtContext.params();
+        /* 파라미터 Tree 구성 노드 확인 */
+        ParamsContext params = (ParamsContext) ctrlStmtContext.getChild(3);
         assertNotNull(params);
+        assertEquals(5, params.children.size());
+        assertTrue(checkRule(TestParser.ParamContext.class, params.getChild(0)));
+        assertTrue(checkToken(TestLexer.Comma, params.getChild(1)));
+        assertTrue(checkRule(TestParser.ParamContext.class, params.getChild(2)));
+        assertTrue(checkToken(TestLexer.Comma, params.getChild(3)));
+        assertTrue(checkRule(TestParser.ParamContext.class, params.getChild(4)));
 
-        List<ParamContext> paramList = params.param();
-        assertFalse(paramList.isEmpty());
-        assertEquals(3, paramList.size());
-
-        ParamContext firstParam = paramList.get(0);
+        ParamContext firstParam = params.getChild(ParamContext.class, 0);
         assertNotNull(firstParam);
-        assertNotNull(firstParam.Param());
+        assertTrue(checkToken(TestLexer.Param, firstParam.children.get(0)));
 
         /* quotation string as positional parameter */
-        ParamContext secondParam = paramList.get(1);
+        ParamContext secondParam = params.getChild(ParamContext.class, 1);
         assertNotNull(secondParam);
+        assertTrue(checkRule(TestParser.QuotationStringContext.class, secondParam.getChild(0)));
         assertNotNull(secondParam.quotationString());
+
+        /* validate quotation String */
         assertEquals(3, secondParam.quotationString().children.size());
-        assertNotNull(secondParam.quotationString().Quotation());
-        assertNotNull(secondParam.quotationString().QuotationString());
+        assertTrue(checkToken(TestLexer.Quotation, secondParam.quotationString().getChild(0)));
+        assertTrue(checkToken(TestLexer.QuotationString, secondParam.quotationString().getChild(1)));
+        assertTrue(checkToken(TestLexer.Quotation, secondParam.quotationString().getChild(2)));
 
         /* bracket string list as keyword parameter */
-        ParamContext thirdParam = paramList.get(2);
+        ParamContext thirdParam = params.getChild(ParamContext.class, 2);
         assertNotNull(thirdParam);
-        assertNotNull(thirdParam.KeywordParam());
-        assertNotNull(thirdParam.ParamLeftParen());
-        assertNotNull(thirdParam.params());
-        assertNotNull(thirdParam.ParamRightParen());
 
-        assertNotNull(thirdParam.params().param());
+        assertTrue(checkToken(TestLexer.KeywordParam, thirdParam.getChild(0)));
+        assertTrue(checkToken(TestLexer.ParamLeftParen, thirdParam.getChild(1)));
+        assertTrue(checkRule(TestParser.ParamsContext.class, thirdParam.getChild(2)));
+        assertTrue(checkToken(TestLexer.ParamRightParen, thirdParam.getChild(3)));
 
-        ParamsContext bracketList = thirdParam.params();
-        assertEquals(3, bracketList.param().size());
+        ParamsContext subParamOfThird = (ParamsContext) thirdParam.getChild(2);
+        assertNotNull(subParamOfThird);
+        assertEquals(5, subParamOfThird.children.size());
+
+        /* 괄호안의 서브 파라미터 검증 */
+        assertTrue(checkRule(TestParser.ParamContext.class, subParamOfThird.getChild(0)));
+        assertTrue(checkToken(TestLexer.Comma, subParamOfThird.getChild(1)));
+        assertTrue(checkRule(TestParser.ParamContext.class, subParamOfThird.getChild(2)));
+        assertTrue(checkToken(TestLexer.Comma, subParamOfThird.getChild(3)));
+        assertTrue(checkRule(TestParser.ParamContext.class, subParamOfThird.getChild(4)));
     }
 
     @Test
@@ -90,101 +107,76 @@ class ParserTest {
         /* validate Parser rule : relStmt */
         RelStmtContext relStmtContext = parser.relStmt();
         assertNotNull(relStmtContext);
-        assertNotNull(relStmtContext.Identifier());
-        assertNotNull(relStmtContext.Name());
-        assertNotNull(relStmtContext.Operation());
-        assertNotNull(relStmtContext.RelExpThen());
+
+        assertEquals(5, relStmtContext.children.size());
+        assertTrue(checkToken(TestLexer.Identifier, relStmtContext.getChild(0)));
+        assertTrue(checkToken(TestLexer.Name, relStmtContext.getChild(1)));
+        assertTrue(checkToken(TestLexer.Operation, relStmtContext.getChild(2)));
+        assertTrue(checkRule(TestParser.RelExpsContext.class, relStmtContext.getChild(3)));
+        assertTrue(checkToken(TestLexer.RelExpThen, relStmtContext.getChild(4)));
 
         /* validate Parser rule : relExps */
-        RelExpsContext relExpsContext = relStmtContext.relExps();
+        RelExpsContext relExpsContext = (RelExpsContext) relStmtContext.getChild(3);
         assertNotNull(relExpsContext);
+
         assertEquals(3, relExpsContext.children.size());
+        assertTrue(checkToken(TestLexer.RelExpLeftParen, relExpsContext.getChild(0)));
+        assertTrue(checkRule(TestParser.RelExpContext.class, relExpsContext.getChild(1)));
+        assertTrue(checkToken(TestLexer.RelExpRightParen, relExpsContext.getChild(2)));
 
         /* validate Parser rule : relExp */
-        RelExpContext relExpContext = relExpsContext.relExp().get(0);
+        RelExpContext relExpContext = (RelExpContext) relExpsContext.getChild(1);
         assertNotNull(relExpContext);
+
         assertEquals(3, relExpContext.children.size());
-        assertEquals(2, relExpContext.RelExpKeyword().size());
-        assertNotNull(relExpContext.RelExpCompOp());
+        assertTrue(checkToken(TestLexer.RelExpKeyword, relExpContext.getChild(0)));
+        assertTrue(checkToken(TestLexer.RelExpCompOp, relExpContext.getChild(1)));
+        assertTrue(checkToken(TestLexer.RelExpKeyword, relExpContext.getChild(2)));
     }
 
-    @Test
-    @DisplayName("IF-THEN-ELSE-ENDIF statement with logical op")
-    void relStmtTest2() {
+    @ParameterizedTest(name = "{0}")
+    @ValueSource(strings = {"IF-THEN-ELSE_02.txt", "IF-THEN-ELSE_03.txt"})
+    void relStmtTest2(final String fileName) {
         //given
-        TestParser parser = createParserInstance("parser" + File.separator + "IF-THEN-ELSE_02.txt");
+        TestParser parser = createParserInstance("parser" + File.separator + fileName);
 
         /* validate Parser rule : relStmt */
         RelStmtContext relStmtContext = parser.relStmt();
         assertNotNull(relStmtContext);
-        assertNotNull(relStmtContext.Identifier());
-        assertNotNull(relStmtContext.Name());
-        assertNotNull(relStmtContext.Operation());
-        assertNotNull(relStmtContext.RelExpThen());
+
+        assertEquals(5, relStmtContext.children.size());
+        assertTrue(checkToken(TestLexer.Identifier, relStmtContext.getChild(0)));
+        assertTrue(checkToken(TestLexer.Name, relStmtContext.getChild(1)));
+        assertTrue(checkToken(TestLexer.Operation, relStmtContext.getChild(2)));
+        assertTrue(checkRule(TestParser.RelExpsContext.class, relStmtContext.getChild(3)));
+        assertTrue(checkToken(TestLexer.RelExpThen, relStmtContext.getChild(4)));
 
         /* validate Parser rule : relExps */
         RelExpsContext relExpsContext = relStmtContext.relExps();
         assertNotNull(relExpsContext);
+
         assertEquals(5, relExpsContext.children.size());
-        assertEquals(2, relExpsContext.relExp().size());
-        assertNotNull(relExpsContext.RelExpLeftParen());
-        assertNotNull(relExpsContext.RelExpRightParen());
-        assertNotNull(relExpsContext.RelExpLogicalOp());
-        assertEquals(1, relExpsContext.RelExpLogicalOp().size());
+        assertTrue(checkToken(TestLexer.RelExpLeftParen, relExpsContext.getChild(0)));
+        assertTrue(checkRule(TestParser.RelExpContext.class, relExpsContext.getChild(1)));
+        assertTrue(checkToken(TestLexer.RelExpLogicalOp, relExpsContext.getChild(2)));
+        assertTrue(checkRule(TestParser.RelExpContext.class, relExpsContext.getChild(3)));
+        assertTrue(checkToken(TestLexer.RelExpRightParen, relExpsContext.getChild(4)));
 
-        /* validate Parser rule : relExp */
-        RelExpContext relExpContext = relExpsContext.relExp().get(0);
+        /* validate Parser rule : first relExp */
+        RelExpContext relExpContext = (RelExpContext) relExpsContext.getChild(1);
         assertNotNull(relExpContext);
+
         assertEquals(3, relExpContext.children.size());
-        assertEquals(2, relExpContext.RelExpKeyword().size());
-        assertNotNull(relExpContext.RelExpCompOp());
+        assertTrue(checkToken(TestLexer.RelExpKeyword, relExpContext.getChild(0)));
+        assertTrue(checkToken(TestLexer.RelExpCompOp, relExpContext.getChild(1)));
+        assertTrue(checkToken(TestLexer.RelExpKeyword, relExpContext.getChild(2)));
 
-        /* validate Parser rule : relExp */
-        RelExpContext SecondRelExpContext = relExpsContext.relExp().get(0);
-        assertNotNull(SecondRelExpContext);
+        /* validate Parser rule : second relExp */
+        RelExpContext SecondRelExpContext = (RelExpContext) relExpsContext.getChild(3);
         assertEquals(3, SecondRelExpContext.children.size());
-        assertEquals(2, SecondRelExpContext.RelExpKeyword().size());
-        assertNotNull(SecondRelExpContext.RelExpCompOp());
-    }
-
-    @Test
-    @DisplayName("IF-THEN-ELSE-ENDIF statement with continuation")
-    void relStmtTest3() {
-        //given
-        TestParser parser = createParserInstance("parser" + File.separator + "IF-THEN-ELSE_03.txt");
-
-        //when - then
-        /* validate Parser rule : relStmt */
-        RelStmtContext relStmtContext = parser.relStmt();
-        assertNotNull(relStmtContext);
-        assertNotNull(relStmtContext.Identifier());
-        assertNotNull(relStmtContext.Name());
-        assertNotNull(relStmtContext.Operation());
-        assertNotNull(relStmtContext.RelExpThen());
-
-        /* validate Parser rule : relExps */
-        RelExpsContext relExpsContext = relStmtContext.relExps();
-        assertNotNull(relExpsContext);
-        assertEquals(5, relExpsContext.children.size());
-        assertEquals(2, relExpsContext.relExp().size());
-
-        assertNotNull(relExpsContext.RelExpRightParen());
-        assertNotNull(relExpsContext.RelExpLogicalOp());
-        assertEquals(1, relExpsContext.RelExpLogicalOp().size());
-
-        /* validate Parser rule : relExp */
-        RelExpContext relExpContext = relExpsContext.relExp().get(0);
-        assertNotNull(relExpContext);
-        assertEquals(3, relExpContext.children.size());
-        assertEquals(2, relExpContext.RelExpKeyword().size());
-        assertNotNull(relExpContext.RelExpCompOp());
-
-        /* validate Parser rule : relExp */
-        RelExpContext SecondRelExpContext = relExpsContext.relExp().get(0);
-        assertNotNull(SecondRelExpContext);
-        assertEquals(3, SecondRelExpContext.children.size());
-        assertEquals(2, SecondRelExpContext.RelExpKeyword().size());
-        assertNotNull(SecondRelExpContext.RelExpCompOp());
+        assertTrue(checkToken(TestLexer.RelExpKeyword, SecondRelExpContext.getChild(0)));
+        assertTrue(checkToken(TestLexer.RelExpCompOp, SecondRelExpContext.getChild(1)));
+        assertTrue(checkToken(TestLexer.RelExpKeyword, SecondRelExpContext.getChild(2)));
     }
 
     @Test
@@ -195,9 +187,10 @@ class ParserTest {
 
         CommentStmtContext commentStmtContext = parser.commentStmt();
         assertNotNull(commentStmtContext);
-        assertNotNull(commentStmtContext.Identifier());
-        assertNotNull(commentStmtContext.CommentString());
+
         assertEquals(2, commentStmtContext.children.size());
+        assertTrue(checkToken(TestLexer.Identifier, commentStmtContext.getChild(0)));
+        assertTrue(checkToken(TestLexer.CommentString, commentStmtContext.getChild(1)));
     }
 
     @Test
@@ -206,18 +199,85 @@ class ParserTest {
         //given
         TestParser parser = createParserInstance("parser" + File.separator + "Instream.txt");
 
-        StatementContext statement = parser.statement();
-        assertEquals(2, statement.children.size());
-        assertEquals(TestParser.CtrlStmtContext.class, statement.children.get(0).getClass());
+        StatementsContext statements = parser.statements();
+        assertNotNull(statements);
 
+        assertEquals(2, statements.children.size());
+        assertTrue(checkRule(TestParser.StatementContext.class, statements.getChild(0)));
+        assertTrue(checkRule(TestParser.StatementContext.class, statements.getChild(1)));
+
+        /* validate first statement */
+        StatementContext firstStatement = (StatementContext) statements.getChild(0);
+        assertNotNull(firstStatement);
+
+        assertEquals(1, firstStatement.children.size());
+        assertTrue(checkRule(CtrlStmtContext.class, firstStatement.getChild(0)));
+
+        CtrlStmtContext ddStatement = (CtrlStmtContext) firstStatement.getChild(0);
+        assertNotNull(ddStatement);
+
+        assertEquals(4, ddStatement.children.size());
+        assertTrue(checkToken(TestLexer.Identifier, ddStatement.getChild(0)));
+        assertTrue(checkToken(TestLexer.Name, ddStatement.getChild(1)));
+        assertTrue(checkToken(TestLexer.Operation, ddStatement.getChild(2)));
+        assertTrue(checkRule(TestParser.ParamsContext.class, ddStatement.getChild(3)));
+
+        /* validate params for DD statement */
+        ParamsContext params = (ParamsContext) ddStatement.getChild(3);
+        assertNotNull(params);
+
+        assertEquals(2, params.children.size());
+        assertTrue(checkRule(TestParser.ParamsContext.class, params.getChild(0)));
+        assertTrue(checkRule(TestParser.InstreamDatasContext.class, params.getChild(1)));
+
+        /* validate first parameter for DD statement */
+        ParamsContext asteriskParams = (ParamsContext) params.getChild(0);
+        assertNotNull(asteriskParams);
+
+        assertEquals(1, asteriskParams.children.size());
+        assertTrue(checkRule(TestParser.ParamContext.class, asteriskParams.getChild(0)));
+
+        ParamContext asterisk = (ParamContext) asteriskParams.getChild(0);
+        assertNotNull(asterisk);
+
+        assertEquals(1, asterisk.children.size());
+        assertTrue(checkToken(TestLexer.Param, asterisk.getChild(0)));
+
+        /* validate instream data */
+        InstreamDatasContext instreamData = (InstreamDatasContext) params.getChild(1);
+        assertNotNull(instreamData);
+
+        assertEquals(2, instreamData.children.size());
+        assertTrue(checkToken(TestLexer.InstreamDatasetEntry, instreamData.getChild(0)));
+        assertTrue(checkToken(TestLexer.InstreamData, instreamData.getChild(1)));
+
+        /* validate second statement */
+        StatementContext secondStatement = (StatementContext) statements.getChild(1);
+        assertNotNull(secondStatement);
+
+        assertEquals(1, secondStatement.children.size());
+        assertTrue(checkRule(NullStmtContext.class, secondStatement.getChild(0)));
+
+        /* validate Null statement */
+        NullStmtContext nullStatement = (NullStmtContext) secondStatement.getChild(0);
+        assertNotNull(nullStatement);
+
+        assertEquals(1, nullStatement.children.size());
+        assertTrue(checkToken(TestLexer.Identifier, nullStatement.getChild(0)));
     }
 
-    private boolean isSameToken(int tokenType, ParseTree tNode) {
-        System.out.println("check the node : " + tNode.toString());
-        TerminalNode targetNode = (TerminalNode) tNode;
-        assertNotNull(targetNode);
-        assertNotNull(targetNode.getSymbol());
-        assertEquals(tokenType, targetNode.getSymbol().getType());
-        return true;
+    private boolean checkToken(int expectedTokenType, ParseTree actualToken) {
+        TerminalNode targetNode = (TerminalNode) actualToken;
+        if (targetNode == null) return false;
+        System.out.println("check the node : " + actualToken.toString());
+
+        if (targetNode.getSymbol() == null) return false;
+        return expectedTokenType == targetNode.getSymbol().getType();
+    }
+
+    private <C extends ParserRuleContext, T extends ParseTree> boolean checkRule(Class<C> expectedRuleType, T actualRuleType) {
+        if (actualRuleType == null) return false;
+        System.out.println("check the rule node : " + actualRuleType.getText());
+        return expectedRuleType.equals(actualRuleType.getClass());
     }
 }
