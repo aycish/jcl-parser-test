@@ -5,8 +5,7 @@ options {
 }
 
 statements :
-    statement
-|   statements statement
+    statement+
 ;
 
 statement :
@@ -35,6 +34,7 @@ relExp:
 
 params:
     param (Comma param)*
+|   params instreamDatas
 ;
 
 param:
@@ -43,7 +43,6 @@ param:
 |   KeywordParam Param
 |   KeywordParam param
 |   KeywordParam ParamLeftParen params ParamRightParen
-|   instreamDatas
 ;
 
 quotationString:

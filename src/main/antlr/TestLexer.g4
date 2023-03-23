@@ -20,11 +20,12 @@ options { language = Java; }
 fragment
 NEWLINE :
     '\n'
+|   '\r\n'
 ;
 
 fragment
 WS :
-    [ \r\t]
+    [ \t]
 ;
 
 /* Common Token */
@@ -243,4 +244,5 @@ CommentString :
 
 mode INSTREAM;
 
-InstreamData : .+? NEWLINE -> mode(DEFAULT_MODE);
+InstreamData : ~[\r\n]+;
+InstreamDataDelimiter : NEWLINE -> skip, mode(DEFAULT_MODE);
