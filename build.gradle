@@ -3,6 +3,7 @@ plugins {
     id 'antlr'
 }
 
+apply plugin: 'java'
 apply plugin: 'antlr'
 
 group 'org.example'
@@ -14,6 +15,8 @@ repositories {
 
 dependencies {
     implementation group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
+    annotationProcessor group: 'org.projectlombok', name: 'lombok', version: '1.18.22'
+
     implementation group: 'org.antlr', name: 'antlr4', version: '4.9.2'
     antlr("org.antlr:antlr4:4.9.2")
 
