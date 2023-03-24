@@ -33,8 +33,9 @@ relExp:
 ;
 
 params:
-    param (Comma param)*
+    Comma* param (Comma param?)*
 |   params instreamDatas
+|   Comma
 ;
 
 param:
@@ -42,7 +43,7 @@ param:
 |   Param
 |   KeywordParam Param
 |   KeywordParam param
-|   KeywordParam ParamLeftParen params ParamRightParen
+|   ParamLeftParen params ParamRightParen
 ;
 
 quotationString:

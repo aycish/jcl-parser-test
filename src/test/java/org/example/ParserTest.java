@@ -82,11 +82,16 @@ class ParserTest {
         assertNotNull(thirdParam);
 
         assertTrue(checkToken(TestLexer.KeywordParam, thirdParam.getChild(0)));
-        assertTrue(checkToken(TestLexer.ParamLeftParen, thirdParam.getChild(1)));
-        assertTrue(checkRule(TestParser.ParamsContext.class, thirdParam.getChild(2)));
-        assertTrue(checkToken(TestLexer.ParamRightParen, thirdParam.getChild(3)));
+        assertTrue(checkRule(TestParser.ParamContext.class, thirdParam.getChild(1)));
 
-        ParamsContext subParamOfThird = (ParamsContext) thirdParam.getChild(2);
+        /* TODO param으로 바뀌었을 듯? */
+        ParamContext paramValue = (ParamContext) thirdParam.getChild(1);
+
+        assertTrue(checkToken(TestLexer.ParamLeftParen, paramValue.getChild(0)));
+        assertTrue(checkRule(TestParser.ParamsContext.class, paramValue.getChild(1)));
+        assertTrue(checkToken(TestLexer.ParamRightParen, paramValue.getChild(2)));
+
+        ParamsContext subParamOfThird = (ParamsContext) paramValue.getChild(1);
         assertNotNull(subParamOfThird);
         assertEquals(5, subParamOfThird.children.size());
 
@@ -99,7 +104,7 @@ class ParserTest {
     }
 
     @Test
-    @DisplayName("IF-THEN-ELSE-ENDIF statement")
+    @DisplayName("relStmtTest")
     void relStmtTest() {
         //given
         TestParser parser = createParserInstance("parser" + File.separator + "IF-THEN-ELSE_01.txt");
@@ -264,6 +269,74 @@ class ParserTest {
 
         assertEquals(1, nullStatement.children.size());
         assertTrue(checkToken(TestLexer.Identifier, nullStatement.getChild(0)));
+    }
+
+    @Test
+    @DisplayName("DD문 Copies 파라미터")
+    void testCopies() {
+        TestParser testParser = createParserInstance("parser" + File.separator + "Copies.txt");
+
+        /* validate Output DD Statement */
+        CtrlStmtContext firstCtrlStatement = (CtrlStmtContext) testParser.ctrlStmt();
+        assertNotNull(firstCtrlStatement);
+
+        assertEquals(4, firstCtrlStatement.children.size());
+        assertTrue(checkToken(TestLexer.Identifier, firstCtrlStatement.getChild(0)));
+        assertTrue(checkToken(TestLexer.Name, firstCtrlStatement.getChild(1)));
+        assertTrue(checkToken(TestLexer.Operation, firstCtrlStatement.getChild(2)));
+        assertTrue(checkRule(TestParser.ParamsContext.class, firstCtrlStatement.getChild(3)));
+
+        /* validate OUTPUT DD Parameters */
+        ParamsContext firstDdParams = (ParamsContext) firstCtrlStatement.getChild(3);
+
+        assertEquals(3, firstDdParams.children.size());
+        assertTrue(checkRule(TestParser.ParamContext.class, firstDdParams.getChild(0)));
+        assertTrue(checkToken(TestLexer.Comma, firstDdParams.getChild(1)));
+        assertTrue(checkRule(TestParser.ParamContext.class, firstDdParams.getChild(2)));
+
+        ParamContext sysoutParam = (ParamContext) firstDdParams.getChild(0);
+
+        assertTrue(checkToken(TestLexer.KeywordParam, sysoutParam.getChild(0)));
+        assertTrue(checkToken(TestLexer.Param, sysoutParam.getChild(1)));
+
+        ParamContext copiesParams = (ParamContext) firstDdParams.getChild(2);
+
+        assertTrue(checkToken(TestLexer.KeywordParam, copiesParams.getChild(0)));
+        assertTrue(checkRule(TestParser.ParamContext.class, copiesParams.getChild(1)));
+
+        ParamContext copiesParam = (ParamContext) copiesParams.getChild(1);
+
+        assertTrue(checkToken(TestLexer.ParamLeftParen, copiesParam.getChild(0)));
+        assertTrue(checkRule(TestParser.ParamsContext.class, copiesParam.getChild(1)));
+        assertTrue(checkToken(TestLexer.ParamRightParen, copiesParam.getChild(2)));
+
+        ParamsContext bracketList = (ParamsContext) copiesParam.getChild(1);
+
+        assertTrue(checkRule(TestParser.ParamContext.class, bracketList.getChild(0)));
+        assertTrue(checkToken(TestLexer.Comma, bracketList.getChild(1)));
+        assertTrue(checkRule(TestParser.ParamContext.class, bracketList.getChild(2)));
+
+        /* validate first elem of bracket list */
+        ParamContext firstBracketElem = (ParamContext) bracketList.getChild(0);
+        assertTrue(checkToken(TestLexer.Param, firstBracketElem.getChild(0)));
+
+        /* validate second elem of brackey list */
+        ParamContext secondBracketElem = (ParamContext) bracketList.getChild(2);
+
+        assertTrue(checkToken(TestLexer.ParamLeftParen,      secondBracketElem.getChild(0)));
+        assertTrue(checkRule(TestParser.ParamsContext.class, secondBracketElem.getChild(1)));
+        assertTrue(checkToken(TestLexer.ParamRightParen,     secondBracketElem.getChild(2)));
+
+        /* validate sub bracket list */
+        ParamsContext subBracketList = (ParamsContext) secondBracketElem.getChild(1);
+
+        assertTrue(checkRule(TestParser.ParamContext.class, subBracketList.getChild(0)));
+        assertTrue(checkToken(TestLexer.Comma, subBracketList.getChild(1)));
+        assertTrue(checkRule(TestParser.ParamContext.class, subBracketList.getChild(2)));
+
+        assertTrue(checkToken(TestLexer.Param, subBracketList.getChild(0).getChild(0)));
+        assertTrue(checkToken(TestLexer.Param, subBracketList.getChild(2).getChild(0)));
+
     }
 
     private boolean checkToken(int expectedTokenType, ParseTree actualToken) {
